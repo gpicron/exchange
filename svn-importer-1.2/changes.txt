@@ -1,0 +1,138 @@
+**** Version 1.2
+06-22-2010
+Fixed overflow problem computing dump filesize limit when specified value is
+2048 or higher.
+
+MKS - Fixed problem processing shared subprojects on newer versions of Source
+Integrity
+
+*** AFTER 1.1-M8 
+- Fixed vss date parsing issue *Thanks to Andrew for providing the patch*
+- add new changes here
+
+*** 1.1-M8 (15-11-2006; build 20061115-1559)
+- Star Team
+  - SVNIMP-43: Star Team import provider added
+    Contributed by Gunnar Wagenknecht
+    
+- PVCS
+  - SVNIMP-35: Files/Revisions checked out twice (workaround provided)
+  - SVNIMP-23: 'svnadmin: Checksum mismatch' error during dump file import
+  - SVNIMP-21: Improved handling of inconsystent PVCS vlog data
+
+- MKS
+  - SVNIMP-39: SVN copy used for Tags/Branches
+  - Removed unused config parameter "mks.recurse_into_subprojects"
+  
+- VSS
+  - SVNIMP-41: Checkout should not be blocked by confirmation requests
+  - SVNIMP-30: VSS Pins converted to SVN branches
+    Contributed by Christian Imfeld
+  - SVNIMP-29: VSS Labels information placed to SVN properties
+    Contributed by Christian Imfeld
+  - SVNIMP-27: VSS branches converted to SVN branches
+    Contributed by Christian Imfeld
+  - SVNIMP-26: Allow VSS files with a "Pin" set
+    Contributed by Christian Imfeld
+  - Documentation fix  
+
+- CC
+  - SVNIMP-39: SVN copy used for Tags/Branches
+  
+- CVS
+  - SVNIMP-47: Checkout is done without keyword substitution
+  - SVNIMP-39: SVN copy used for Tags/Branches
+  - New CVSRCS provider implemented � imports from CVS using repository files directly
+    (gives improved performance)
+  - Added Logging of CVS errors  
+  - Added file cache support 
+
+- General    
+  - SVNIMP-38: Create log contains source vcs commit message mapped to svn revision
+  - Documentation updated
+
+*** 1.1-M7  (03-04-2006; build 20060403-1501)
+- PVCS
+  - SVNIMP-4: Allow use of copy command for branches/tags, 
+    contributed by Friedrich Wilckens
+  - SVNIMP-5: allow complete migration of large repositories. If necessary, 
+    create a sequence of dump files whose sizes are configurable 
+    in the parameter file, 	  
+    contributed by Friedrich Wilckens
+  - FIX - correct quotes handling when launching pcli commands,
+    contributed by Friedrich Wilckens
+  - FIX - allow  automatic splig up of too big dump files, 
+    contributed by Friedrich Wilckens
+  - FIX - pcli commands optimized to get only needed data, 
+    contributed by Friedrich Wilckens
+  - Make import of PVCS archive attributes optional by a config file parameter, 
+    contributed by Friedrich Wilckens
+  - Add config file parameter keep_vlogfile for special purposes, 
+    contributed by Friedrich Wilckens
+  - SVNIMP-9: automatically set properties during import, 
+    contributed by Friedrich Wilckens
+  - FIX: UTF-8 used for correct handling of national characters, 
+    contributed by Friedrich Wilckens
+  - FIX: Handle file names containing '$' and quote characters correctly, 
+    contributed by Friedrich Wilckens
+  - SVNIMP-20: multiline commit message handling added
+  - SVNIMP-21: vlog vs files file matching made more robust
+	
+- MKS
+  - FIX: sandbox dropping (execute mks drop only if .pj file exists in the sandbox)		
+  - SVNIMP-15: The importer does not handle MKS question "Do you want to recurse into the subproject"
+  - SVNIMP-16: Sabdbox project names other than "project.pj" not handled correctly during delete
+  - SVNIMP-11: Investigate the necessity of local .pj file existence check
+	
+- VSS	
+  - FIX: Applied patch from http://forums.polarion.org/viewtopic.php?t=35, 
+    contributed by user Srt in forums
+  - SVNIMP-13: Import fails if one file has two revisions with the same date, user, time and comment.
+  - SVNIMP 14: Empty directories in vss not handled properly
+  - FIX: version labels saves to SVN revision property
+   
+- CC  
+  - FIX: "Wrong revision '/main/1' on Solaris" in CCHistoryParser 
+  - SVNIMP-17: comparing revision numbers
+  - FIX: revision parser (revision number can contain more than two branch names)
+  - SVNIMP-18: Support conversion of ClearCase labels into SVN Tags
+  - FIX: history parser: multiline comments and empty fields were not handled properly
+   
+- CVS
+  - FIX: SvnHistoryHelper: conditions: provider=cvs, modules, result: equal revisions for different modules   
+  - FIX: problem with cvsnt checkouts (see http://forums.polarion.org/viewtopic.php?t=26)
+  - SVNIMP-19: correction of invalid dates fixed
+   
+- General
+  - FIX: check svnadmin process exit code	
+  - FIX: svn dump with slash in branch name 
+  - Exec reports process stderr text in INFO log level instead of ERROR
+  - CVS,PVCS,VSS,CC: original revision numbers saves to SVN revision property
+  - SVNIMP-10: project is now build using Apache Maven instead of Ant
+   
+   
+*** 1.1-M6  (29-06-2005; build 20050629-1216)
+- Version number format changed (from 1.1.Mx to 1.1-Mx) to conform with other projects
+- Documentation improved (better indication of what SCM concepts are covered by import for each source repository)
+- MKS documentation added
+- Compatibility with SVN 1.2 fixed
+- bug in SvnHistoryHelper fixed
+- PVCS, pvcs.log.datetimezone parameter added to support time zone setting
+- PVCS, pvcs.username and pvcs.password params added to support authentication
+- PVCS, the trunk revision need not start with "1.".
+- PVCS, (SVNIMP-2): Better support for SVN properties
+- PVCS, (SVNIMP-3): Import more than one (fixed) label per file revision
+- Allow the subversion dump to contain revisions only up to a given date. The date can be given as third argument on the command line.
+
+- INTERNAL: Project structure reworked to allow Maven reports of subcomponents
+
+
+*** 1.1.M5	(25-04-2005)
+- ClearCase support added
+- MKS support added
+- PVCS Label handling fixed
+- HTML Documentation added
+- changex.txt file added
+
+*** 1.1.M4	(30-03-2005)
+- VSS support added
