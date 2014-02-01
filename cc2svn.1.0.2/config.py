@@ -7,14 +7,14 @@ CLEARTOOL = "/usr/atria/bin/cleartool"
 
 # The root directory for conversion
 # The tool will launch ct lshi -rec there and will convert all files found below this directory
-CC_VOB_DIR = "/vobs/MY_VOB_DIR/path/to/root"
+CC_VOB_DIR = "/cm/vobs/esc/ENV/STOOLS"
 
 # The tool uses cache directory to place ClearCase version files there. The cache speeds up the transfer process
 # in many times in subsequent attempts (up to 10 times). It may be recommended to start the tool 2 days before the
 # actual transfer loading all files to the cache. So only new versions appeared during the 2 days will be retrieved from
 # ClearCase in the day of the transfer.
 # NOTE: Make sure there is enough space in cache directory.
-CACHE_DIR = "/var/tmp/cc2svn_cache"
+CACHE_DIR = "/cm/local_build/ccimport"
 
 # The tool can not track the history of ClearCase symbolic links
 # This is a workaround for this. When the tool finds the symlink record in CC history
