@@ -65,5 +65,5 @@ HISTORY_FILE = "/cm/local_build/cchistory.txt"
 # Dump will include revisions with date > DUMP_SINCE_DATE (strict greater) only.
 # Note: SVN_CREATE_BRANCHES_TAGS_DIRS is ignored in incremental mode
 # Date format is YYYYMMDD.hhmmss (the same as CC is using).  
-DUMP_SINCE_DATE = "20080101.000000"
+#DUMP_SINCE_DATE = "20080101.000000"
 

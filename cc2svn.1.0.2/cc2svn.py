@@ -839,13 +839,13 @@ class Converter:
         parser = CCHistoryParser()
         ccRecord = CCRecord()
 
-        if self.checklabels:
-            self.saveConfigSpec(CCVIEW_CONFIGSPEC)
+        #if self.checklabels:
+        #    self.saveConfigSpec(CCVIEW_CONFIGSPEC)
             
         for label in self.checklabels:   
             info("Checking " + label)
                   
-            self.setLabelSpec(label)
+            #self.setLabelSpec(label)
             try:            
                 labelFilename = self.getLabelContent(label)            
                 file = open(labelFilename, 'r')
@@ -892,8 +892,8 @@ class Converter:
             except:
                 error(str(sys.exc_info()[1]))
         
-        if self.checklabels:
-            self.setConfigSpec(CCVIEW_CONFIGSPEC)
+        #if self.checklabels:
+        #    self.setConfigSpec(CCVIEW_CONFIGSPEC)
         pass
 
 ############# main functions ######################
