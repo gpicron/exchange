@@ -54,10 +54,10 @@ CHECK_ZEROSIZE_CACHEFILE = True
 SVN_CREATE_BRANCHES_TAGS_DIRS = False
 
 # SVN dump output file created by the tool
-SVN_DUMP_FILE = "svndump.txt"
+SVN_DUMP_FILE = "/cm/local_build/svndump.txt"
 
 # ClearCase history file created by the tool
-HISTORY_FILE = "cchistory.txt"
+HISTORY_FILE = "/cm/local_build/cchistory.txt"
 
 # DUMP_SINCE_DATE activates incremental dump mode. This should be used after the full dump mode only.
 # The idea is: you convert cc2svn on the day X without using this option, working in svn and ClearCase simultaneously
