@@ -945,10 +945,14 @@ def main():
             
             historyFile = open(HISTORY_FILE, 'rb')
             try: 
+                count = 0
                 for line in rlines(historyFile): # reading lines in reverse order
                     ccRecord = parser.processLine(line)
                     if ccRecord:
                         converter.process(ccRecord)
+                    if (count % 10000 == 0):
+                        info("parsed " + count)
+                    count = count + 1
             finally:
                 historyFile.close()
             converter.completeLabels()
