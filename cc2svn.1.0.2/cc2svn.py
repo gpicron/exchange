@@ -951,7 +951,7 @@ def main():
                     if ccRecord:
                         converter.process(ccRecord)
                     if (count % 10000 == 0):
-                        info("parsed " + count)
+                        info("parsed %d" % count)
                     count = count + 1
             finally:
                 historyFile.close()
