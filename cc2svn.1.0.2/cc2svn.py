@@ -77,8 +77,12 @@ LICENSING
     cc2svn.py is distributed under the MIT license.
 """
 
-from __future__ import with_statement
-import os, subprocess, time, sys, hashlib, codecs, fnmatch
+import os, subprocess, time, sys, codecs, fnmatch
+try: 
+   from hashlib import md5
+except ImportError:
+   from md5 import md5
+
 
 USAGE = "Usage: %(cmd)s -run | -help" % { "cmd" : sys.argv[0] } 
 
@@ -382,7 +386,7 @@ def writeNodeAction(out, nodeAction):
 
 def calculateLengthAndChecksum(filename):
     textContentLength = 0;
-    md = hashlib.md5()        
+    md = md5.md5()        
     file = open(filename, 'rb')
     while 1:
         s = file.read(FILEREAD_CHUNKSIZE)
@@ -844,7 +848,7 @@ class Converter:
             self.setLabelSpec(label)
             try:            
                 labelFilename = self.getLabelContent(label)            
-                file = open(labelFilename, 'r'):
+                file = open(labelFilename, 'r')
                 try:            
                     for line in file:
                         ccrevfile = line.strip()                        
