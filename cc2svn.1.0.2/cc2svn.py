@@ -386,7 +386,7 @@ def writeNodeAction(out, nodeAction):
 
 def calculateLengthAndChecksum(filename):
     textContentLength = 0;
-    md = md5.md5()        
+    md = md5()        
     file = open(filename, 'rb')
     while 1:
         s = file.read(FILEREAD_CHUNKSIZE)
