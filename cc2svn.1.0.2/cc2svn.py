@@ -160,7 +160,7 @@ def shellCmd(cmd, cwd=None, outfile=None):
                 outfd = open(outfile, 'wb')
             if cwd and not os.path.exists(cwd):
                 raise RuntimeError("No such file or directory: '" + cwd + "'")
-            info ("cmd : %s" % cmd)
+            #info ("cmd : %s" % cmd)
             p = subprocess.Popen(cmd, cwd=cwd, stdout=outfd, stderr=subprocess.PIPE, shell=True, close_fds=True)
             (outStr, errStr) = p.communicate()
             if outfile:
