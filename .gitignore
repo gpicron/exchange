@@ -2,3 +2,5 @@
 svn-importer-1.2/esc/
 **/*~
 /cc2git
+svndump.txt.test1
+/svn

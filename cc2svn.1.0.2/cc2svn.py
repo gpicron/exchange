@@ -354,7 +354,7 @@ class CCHistoryParser:
         ccRecord.type = fields[6];
         ccRecord.author = fields[7];
         ccRecord.comment = fields[8].strip();
-        ccRecord.attributes = fields[6].strip();
+        ccRecord.attributes = fields[5].strip();
         if (len(ccRecord.attributes) > 0):
             if (len(ccRecord.comment) > 0):
                 ccRecord.comment = ccRecord.comment + '\n';
