@@ -786,14 +786,20 @@ class Converter:
         outStr = ""
         cacheExists = os.path.exists(localfile) and os.path.getsize(localfile) > 0
         if cacheExists:
-            with open(localfile, 'r') as file:
+            file = open(localfile, 'r')
+            try:
                 for line in file:
                     outStr += line
+            finally:
+                file.close()
         else:
             cmd = CLEARTOOL + " descr -fmt '" + HISTORY_FORMAT + "' " + ccrevfile
             (status, outStr) = shellCmd(cmd, cwd=CC_VOB_DIR)
-            with open(localfile, 'w') as file:
+            file = open(localfile, 'w')
+            try:
                 file.write(outStr)                    
+            finally:
+                file.close()
         return outStr
         
     def getLabelContent(self, label):       
@@ -813,8 +819,11 @@ class Converter:
         shellCmd(cmd)
     
     def setLabelSpec(self, label):
-        with open(CCVIEW_TMPFILE, 'w') as file:
-                file.write("element * " + label + "\n")        
+        file = open(CCVIEW_TMPFILE, 'w')
+        try:
+            file.write("element * " + label + "\n")        
+        finally:
+            file.close()
         self.setConfigSpec(CCVIEW_TMPFILE)        
         
     def completeLabels(self):
@@ -835,7 +844,8 @@ class Converter:
             self.setLabelSpec(label)
             try:            
                 labelFilename = self.getLabelContent(label)            
-                with open(labelFilename, 'r') as file:            
+                file = open(labelFilename, 'r'):
+                try:            
                     for line in file:
                         ccrevfile = line.strip()                        
                         try:
@@ -871,6 +881,8 @@ class Converter:
                                 self.processLabels(ccRecord, updateLabels=False)
                             else:
                                 self.ccTree.add( (path, revision) )
+                finally:
+                    file.close()
             except KeyboardInterrupt, e:
                 raise e
             except:
@@ -899,9 +911,12 @@ def readList(filename):
     if filename:
         info("Reading " + filename)
         resList = set()
-        with open(filename, 'r') as file:
+        file = open(filename, 'r')
+        try:
             for line in file:
                 resList.add(line.strip())
+        finally:
+            file.close()
     return resList
 
 def main():
@@ -918,20 +933,24 @@ def main():
         
         info("Processing ClearCase history, creating svn dump " + SVN_DUMP_FILE)
     
-        with open(SVN_DUMP_FILE, 'wb') as dumpfile:
-        
+        dumpfile = open(SVN_DUMP_FILE, 'wb')
+        try:        
             converter = Converter(dumpfile, labels, branches, autoProps)
             
             parser = CCHistoryParser()
             
-            with open(HISTORY_FILE, 'rb') as historyFile: 
+            historyFile = open(HISTORY_FILE, 'rb')
+            try: 
                 for line in rlines(historyFile): # reading lines in reverse order
                     ccRecord = parser.processLine(line)
                     if ccRecord:
                         converter.process(ccRecord)
-            
+            finally:
+                historyFile.close()
             converter.completeLabels()
-        
+        finally:
+            dumpfile.close()
+
         info("Completed")
             
     except SystemExit:
