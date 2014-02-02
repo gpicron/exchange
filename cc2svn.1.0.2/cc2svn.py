@@ -77,7 +77,8 @@ LICENSING
     cc2svn.py is distributed under the MIT license.
 """
 
-import os, subprocess, time, sys, codecs, fnmatch
+import os, subprocess, time, sys, codecs, fnmatch, stat
+
 try: 
    from hashlib import md5
 except ImportError:
@@ -755,15 +756,17 @@ class Converter:
         if revision: 
             ccfile = ccfile + "@@" + revision
             localfile = os.path.normpath(localfile + "/" + revision)
+        localfile = localfile.replace("lost+found", "lost__found")
         localfileDir = os.path.dirname(localfile)
         if not os.path.exists(localfileDir):
             os.makedirs(localfileDir, mode=0777)
          
         cacheExists = os.path.exists(localfile)
         if cacheExists and CHECK_ZEROSIZE_CACHEFILE:
-            cacheExists = os.path.getsize(localfile) > 0
-         
+            cacheExists = os.path.getsize(localfile) > 0 and (not path.endswith("SBF") or localfile.endswith("/0")) #this one is often empty
+
         if not cacheExists:
+            info("not found in cache : %s" % localfile);
             if symlink:
                 symlinkfile = os.path.normpath(CC_VOB_DIR + "/" + ccfile)
                 if os.path.islink(symlinkfile):
@@ -775,10 +778,15 @@ class Converter:
                 else:
                     raise RuntimeError("File " + symlinkfile + " is not a symbolic link")
             else: 
+                if os.path.exists(localfile):
+                    os.remove(localfile)
                 cmd = CLEARTOOL + " get -to '" + localfile + "' '" + ccfile + "'"
                 (status, out) = shellCmd(cmd, cwd=CC_VOB_DIR)
                 if status == "ignore":
                     if not os.path.exists(localfile): open(localfile, 'w').close()
+        if os.path.exists(localfile): 
+            st = os.stat(localfile)
+            os.chmod(localfile, st.st_mode | stat.S_IROTH | stat.S_IRGRP | stat.S_IREAD | stat.S_IWRITE )
         return localfile
     
     def getFileDetails(self, ccrevfile):

@@ -47,7 +47,7 @@ SVN_AUTOPROPS_FILE = THIS_FILE_DIR + "/config.autoprops"
 
 # If the tool finds the size of the file in cache is zero, it may try loading the file from ClearCase again.
 # This is to make sure zero size is not due to previous unsuccessful retrieving attempt.
-CHECK_ZEROSIZE_CACHEFILE = True
+CHECK_ZEROSIZE_CACHEFILE = False
 
 # Should svndump contain the command to create SVN /branches and /tags directory or not
 # It will be an error if you try loading the dump with such command to SVN repository containing these directories
