@@ -151,7 +151,7 @@ def error(text):
     logMessage("ERROR: " + text)
 
 
-def shellCmd(cmd, cwd=None, outfile=None):
+def shellCmd(cmd, cwd=None, outfile=None, env=None):
     outfd = subprocess.PIPE
     outStr = ""
     status = ""
@@ -162,7 +162,7 @@ def shellCmd(cmd, cwd=None, outfile=None):
             if cwd and not os.path.exists(cwd):
                 raise RuntimeError("No such file or directory: '" + cwd + "'")
             #info ("cmd : %s" % cmd)
-            p = subprocess.Popen(cmd, cwd=cwd, stdout=outfd, stderr=subprocess.PIPE, shell=True, close_fds=True)
+            p = subprocess.Popen(cmd, cwd=cwd, stdout=outfd, stderr=subprocess.PIPE, shell=True, env=env, close_fds=True)
             (outStr, errStr) = p.communicate()
             if outfile:
                 outfd.close()
@@ -452,6 +452,9 @@ def getSvnBranchPath(branch):
 def getSvnTagPath(tag):
     return "tags/" + tag
 
+class GitRevisionProps:
+
+
 class SvnRevisionProps:
     def __init__(self):
         self.properties = SvnProperties()
@@ -504,7 +507,204 @@ class WriteStream:
     def write(self, data):
         if self.enabled:
             self.file.write(data)
+
+class GitConverter:
+    def __init__(self, worktree, labels, branches, autoProps):
+        self.labels = labels                
+        if self.labels is not None:
+            self.checklabels = self.labels
+        else:
+            self.checklabels = set()    
+        self.branches = branches
+        self.worktree = worktree
+        
+        self.gitTree = {} # branch/label -> FileSet
+        self.ccTree = set() # (ccpath, ccrev)
+        self.cachedir = CACHE_DIR
+        self.revProps = GitCommitProps()       
+        
+        if DUMP_SINCE_DATE is not None:
+            self.out = false
+        
+        if SVN_CREATE_BRANCHES_TAGS_DIRS:
+            shellCmd("git init", cwd=self.worktree)
     
+    def setRevisionProps(self, ccRecord):
+        self.revProps.message = ccRecord.comment
+        self.revProps.author = ccRecord.author
+        self.revProps.date = ccRecord.date    
+        self.revProps.ccRevision = ccRecord.revision
+    
+    def dumpFile(self, ccRecord, action, symlink=False):
+        contentFilename = self.getFile(ccRecord.path, ccRecord.revision, symlink)
+   
+        shellCmd("cp -f %s %s" % (contentFilename, ccRecord.path), cwd=self.worktree)
+	shellCmd("git add %s" % ccRecord.path, cwd=self.worktree)
+    
+    def createParentDirs(self, fileSet, path):
+        dir = os.path.dirname(path)
+        if dir and dir not in fileSet:
+            self.createParentDirs(fileSet, dir)
+            dirpath = fileSet.getAbsolutePath(dir)
+            dumpGitDir(self.out, dirpath)
+            fileSet.add(dir)    
+    
+    def process(self, ccRecord):
+        #    OPERATION;TYPE
+        #    checkin;directory version
+        #    checkin;version
+        #    mkbranch;directory version
+        #    mkbranch;version
+        #    mkelem;directory version - means version 0
+        #    mkelem;version    - means version 0
+        #    mkslink;symbolic link
+        # not of interest:
+        #    **null operation kind**;file element
+        #    checkout;directory version
+        #    checkout;version
+        #    lock;branch
+        #    mkbranch;branch
+        #    mkelem;branch
+        #    mkelem;directory element
+        #    mkelem;file element
+        
+        if ccRecord.path == ".": return
+        
+        type = ccRecord.type
+        operation = ccRecord.operation
+        
+        ccRecord.svnbranch = len(ccRecord.branchNames) > 0 and ccRecord.branchNames[-1] or "unknown" 
+        ccRecord.svnpath = getSvnBranchPath(ccRecord.svnbranch) + "/" + ccRecord.path
+        
+        if self.branches is not None and ccRecord.svnbranch not in self.branches:
+            return            
+                
+        if DUMP_SINCE_DATE is not None and self.out.disabled() and ccRecord.date > DUMP_SINCE_DATE:
+            self.out = true
+            
+        self.setRevisionProps(ccRecord)
+        
+        if type == "version": # file
+            if operation == "checkin" or operation == "mkbranch" or operation == "mkelem":
+                # create or modify file                 
+                branchFileSet = self.svnTree.get(ccRecord.svnbranch)
+                if branchFileSet is not None:
+                    # branch is already known
+                    shellCmd("git checkout %s" % ccRecord.svnbranch, cwd=worktree)
+                    if ccRecord.path in branchFileSet:
+                        # file is already in the set - svn modify
+                        self.dumpFile(ccRecord, "change")
+                        pass
+                    else:
+                        # new file in branch - svn add
+                        self.createParentDirs(branchFileSet, ccRecord.path)                      
+                        self.dumpFile(ccRecord, "add")
+                        branchFileSet.add(ccRecord.path)
+                        pass
+                    
+                    self.processLabels(ccRecord)
+                    pass
+                else:
+                    # new branch
+                    copyfromRev = self.svnRevNum - 1                    
+                                       
+                    if len(ccRecord.branchNames) < 2:
+                        # new top level branch
+                        newBranchFileSet = FileSet(getSvnBranchPath(ccRecord.svnbranch))
+                        self.svnTree[ccRecord.svnbranch] = newBranchFileSet     
+                        
+                        dumpSvnDir(self.out, newBranchFileSet.root)                     
+                        pass
+                    else:
+                        parentSvnBranch = ccRecord.branchNames[-2]
+                        
+                        parentBranchFileSet = self.svnTree.get(parentSvnBranch)
+                        if parentBranchFileSet:
+                            # operation - svn cp
+                            copyfromPath = getSvnBranchPath(parentSvnBranch)
+                            copytoPath = getSvnBranchPath(ccRecord.svnbranch)
+                            
+                            newBranchFileSet = parentBranchFileSet.copy()
+                            newBranchFileSet.root = copytoPath 
+                            self.svnTree[ccRecord.svnbranch] = newBranchFileSet
+                                                        
+                            dumpSvnCopy(self.out, "dir", copyfromPath, copyfromRev, copytoPath)
+                            
+                        else:
+                            error("ClearCase history is corrupted: child branch appeared before the parent one for file " +
+                                  ccRecord.path + "@@" + ccRecord.revision)                            
+                            if askYesNo("Create branch anyway and ignore the error? (or exit)"):
+                                newBranchFileSet = FileSet(getSvnBranchPath(ccRecord.svnbranch))
+                                self.svnTree[ccRecord.svnbranch] = newBranchFileSet
+                                dumpSvnDir(self.out, newBranchFileSet.root)
+                            else:
+                                sys.exit(1)
+                        pass
+                                    
+                    if ccRecord.path in newBranchFileSet:
+                        # file is already in the set - svn modify if cc version is not 0
+                        if ccRecord.revNumber != "0":
+                            self.dumpFile(ccRecord, "change")
+                        pass
+                    else:
+                        # new file in branch - svn add
+                        self.createParentDirs(newBranchFileSet, ccRecord.path)                      
+                        self.dumpFile(ccRecord, "add")
+                        newBranchFileSet.add(ccRecord.path)
+                        pass
+                    
+                    self.processLabels(ccRecord)
+                    pass                                
+                pass
+            
+        elif type == "directory version":
+            if operation == "checkin" or operation == "mkbranch" or operation == "mkelem":
+                # new or modify dir
+                branchFileSet = self.svnTree.get(ccRecord.svnbranch)
+                if branchFileSet:
+                    # branch is already known
+                    if ccRecord.path in branchFileSet:
+                        # dir is already in the set - it must be adding or removing some files
+                        # if some file is removed from the dir - we will not get any history for it
+                        # unless it resurrected after - we will ignore this case
+                        pass
+                    else:
+                        # new dir in the branch
+                        self.dumpRevisionHeader()
+                        self.createParentDirs(branchFileSet, ccRecord.path)
+                        dumpSvnDir(self.out, ccRecord.svnpath)                        
+                        branchFileSet.add(ccRecord.path)
+                        pass
+                    # save the dir version in cc tree for label processing stage
+                    self.ccTree.add( (ccRecord.path, ccRecord.revision) )
+                    pass
+                else:
+                    # new branch for the dir - wait until there are files in the branch
+                    # do nothing                                     
+                    pass
+                pass
+        elif type == "symbolic link" and operation == "mkslink":
+            # just get the latest version of the file - we can not track the history of the link
+            ccRecord.svnbranch = PUT_CCLINKS_TO_BRANCH
+            ccRecord.svnpath = getSvnBranchPath(ccRecord.svnbranch) + "/" + ccRecord.path
+            branchFileSet = self.svnTree.get(ccRecord.svnbranch)
+            if branchFileSet is not None:
+                if ccRecord.path in branchFileSet:
+                    self.dumpRevisionHeader()
+                    self.dumpFile(ccRecord, "change", symlink=True)                        
+                    pass
+                else:
+                    self.dumpRevisionHeader()
+                    self.createParentDirs(branchFileSet, ccRecord.path)
+                    self.dumpFile(ccRecord, "add", symlink=True)                
+                    branchFileSet.add(ccRecord.path)
+                    pass
+                pass
+            else:
+                warn("The branch " + ccRecord.svnbranch + " does not exists. Skip the link " + ccRecord.path)
+                pass
+            pass
+        pass
                
 class Converter:
     def __init__(self, dumpfile, labels, branches, autoProps):
