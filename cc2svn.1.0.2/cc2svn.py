@@ -415,6 +415,10 @@ def dumpSvnFile(out, action, path, props, contentFilename):
     
     props.writeLength(out);
     
+    b = os.path.getsize(contentFilename)
+    if (b > (2 * 1024 * 1024)):
+        contentFilename = "toobig.dummy"
+
     textContentLength, checksum = calculateLengthAndChecksum(contentFilename);
     writeTextContentLength(out, textContentLength);
     out.write("Text-content-md5: " + checksum + "\n");
@@ -453,7 +457,7 @@ def getSvnTagPath(tag):
     return "tags/" + tag
 
 class GitRevisionProps:
-
+    pass    
 
 class SvnRevisionProps:
     def __init__(self):
@@ -538,8 +542,8 @@ class GitConverter:
     def dumpFile(self, ccRecord, action, symlink=False):
         contentFilename = self.getFile(ccRecord.path, ccRecord.revision, symlink)
    
-        shellCmd("cp -f %s %s" % (contentFilename, ccRecord.path), cwd=self.worktree)
-	shellCmd("git add %s" % ccRecord.path, cwd=self.worktree)
+        #shellCmd("cp -f %s %s" % (contentFilename, ccRecord.path), cwd=self.worktree)
+	    #shellCmd("git add %s" % ccRecord.path, cwd=self.worktree)
     
     def createParentDirs(self, fileSet, path):
         dir = os.path.dirname(path)
